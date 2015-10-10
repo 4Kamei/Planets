@@ -7,6 +7,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by Aleksander on 10/10/2015.
@@ -24,7 +26,10 @@ public class Launch {
         ArrayList<java.awt.DisplayMode> modes = new ArrayList<>(Arrays.asList(display.getDisplayModes()));
         modes.sort((d2, d1) -> Integer.compare(d1.getWidth() * d1.getHeight(), d2.getWidth() * d2.getHeight()));;
 
-        modes.stream().forEachOrdered((d) -> c.addItem(new DisplayModeHelper(d, d.getWidth() + "x" + d.getHeight() + "@" + d.getRefreshRate())));
+        modes.stream().forEachOrdered((d) -> {
+            if (d.getBitDepth() == 32 && d.getRefreshRate() == 60)
+                c.addItem(new DisplayModeHelper(d, d.getWidth() + "x" + d.getHeight()));
+        });
         proceed.addActionListener(e -> {
             java.awt.DisplayMode m = ((DisplayModeHelper) c.getSelectedItem()).mode;
             String[] s = {m.getWidth() + "", m.getHeight() + ""};

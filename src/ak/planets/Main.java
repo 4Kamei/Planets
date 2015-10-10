@@ -22,8 +22,6 @@ public class Main {
     /** last fps time */
     long lastFPS;
 
-    private int sync;
-
     public void start(DisplayMode d) {
 
         PixelFormat pixelFormat = new PixelFormat();
@@ -31,7 +29,7 @@ public class Main {
                 .withForwardCompatible(true)
                 .withProfileCore(true);
         DisplayMode displayMode = new DisplayMode(d.getWidth(), d.getHeight());
-        sync = d.getFrequency();
+
         try {
             Display.setDisplayMode(displayMode);
             Display.setTitle(Reference.GAME_TITLE);
@@ -53,8 +51,7 @@ public class Main {
             renderGL();
 
             Display.update();
-            Display.sync(sync); // cap fps to 60fps
-
+            Display.sync(60); // cap fps to 60fps
         }
 
         Display.destroy();
