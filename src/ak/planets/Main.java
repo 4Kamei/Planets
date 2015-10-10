@@ -1,5 +1,6 @@
 package ak.planets;
 
+import ak.planets.entity.RenderableEntity;
 import ak.planets.util.*;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -7,13 +8,13 @@ import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.*;
 import org.lwjgl.opengl.DisplayMode;
-import sun.misc.IOUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 
 public class Main {
 
@@ -29,25 +30,8 @@ public class Main {
     int fps;
     /** last fps time */
     long lastFPS;
-    public static ByteBuffer createTexture(BufferedImage image){
-        int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
+    RenderableEntity e;
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4); //4 for RGBA, 3 for RGB
-
-        for(int y = 0; y < image.getHeight(); y++){
-            for(int x = 0; x < image.getWidth(); x++){
-                int pixel = pixels[y * image.getWidth() + x];
-                buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
-                buffer.put((byte) ((pixel >> 8) & 0xFF));      // Green component
-                buffer.put((byte) (pixel & 0xFF));               // Blue component
-                buffer.put((byte) ((pixel >> 24) & 0xFF));    // Alpha component. Only for RGBA
-            }
-        }
-        buffer.flip();
-
-        return buffer;
-    }
     public void start(DisplayMode d) {
         try {
 
@@ -78,6 +62,7 @@ public class Main {
         //Init
         initGL();
         getDelta();
+        setup();
         lastFPS = getTime();
 
         while (!Display.isCloseRequested()) {
@@ -107,12 +92,21 @@ public class Main {
         updateFPS();
     }
 
-    /**
-     * Calculate how many milliseconds have passed
-     * since last frame.
-     *
-     * @return milliseconds passed since last frame
-     */
+    public void initGL() {
+        GL11.glClearColor(0f, 0f, 0f, 0f);
+        GL11.glViewport(0, 0, Display.getWidth(), Display.getHeight());
+    }
+
+    public void setup(){
+        e = new RenderableEntity();
+        e.setup();
+    }
+
+    public void renderGL() {
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        e.render();
+    }
+
     public int getDelta() {
         long time = getTime();
         int delta = (int) (time - lastFrame);
@@ -120,6 +114,13 @@ public class Main {
 
         return delta;
     }
+
+    /**
+     * Calculate how many milliseconds have passed
+     * since last frame.
+     *
+     * @return milliseconds passed since last frame
+     */
 
     public long getTime() {
         return (Sys.getTime() * 1000) / Sys.getTimerResolution();
@@ -134,20 +135,36 @@ public class Main {
         fps++;
     }
 
-    public void initGL() {
+    public static ByteBuffer createTexture(BufferedImage image) {
+        int[] pixels = new int[image.getWidth() * image.getHeight()];
+        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
 
-    }
+        //4 for RGBA, 3 for RGB
+        ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4);
 
-    public void renderGL() {
+        for(int y = 0; y < image.getHeight(); y++){
+            for(int x = 0; x < image.getWidth(); x++){
+                int pixel = pixels[y * image.getWidth() + x];
+                buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
+                buffer.put((byte) ((pixel >> 8) & 0xFF));      // Green component
+                buffer.put((byte) (pixel & 0xFF));             // Blue component
+                buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component. Only for RGBA
+            }
+        }
+        buffer.flip();
 
+        return buffer;
     }
 
     public static void main(String[] args) {
         try{
             DisplayMode d = new DisplayMode(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
             new Main().start(d);
-        }catch (Exception e){
+        }catch (NumberFormatException e){
+
             System.out.println("Are you sure " + args[0] + " and " + args[1] + " are not integers");
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 }
