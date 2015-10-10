@@ -1,11 +1,19 @@
 package ak.planets;
 
 import ak.planets.util.*;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.*;
 import org.lwjgl.opengl.DisplayMode;
+import sun.misc.IOUtils;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class Main {
 
@@ -21,8 +29,36 @@ public class Main {
     int fps;
     /** last fps time */
     long lastFPS;
+    public static ByteBuffer createTexture(BufferedImage image){
+        int[] pixels = new int[image.getWidth() * image.getHeight()];
+        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
 
+        ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4); //4 for RGBA, 3 for RGB
+
+        for(int y = 0; y < image.getHeight(); y++){
+            for(int x = 0; x < image.getWidth(); x++){
+                int pixel = pixels[y * image.getWidth() + x];
+                buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
+                buffer.put((byte) ((pixel >> 8) & 0xFF));      // Green component
+                buffer.put((byte) (pixel & 0xFF));               // Blue component
+                buffer.put((byte) ((pixel >> 24) & 0xFF));    // Alpha component. Only for RGBA
+            }
+        }
+        buffer.flip();
+
+        return buffer;
+    }
     public void start(DisplayMode d) {
+        try {
+
+            ByteBuffer[] list = new ByteBuffer[2];
+            list[0] = createTexture(ImageIO.read(new File("res/texture/icon/icon32.png")));
+            list[1] = createTexture(ImageIO.read(new File("res/texture/icon/icon64.png")));
+            System.out.println("taskbaricon result: " + Display.setIcon(list));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         PixelFormat pixelFormat = new PixelFormat();
         ContextAttribs contextAttributes = new ContextAttribs(3, 2)

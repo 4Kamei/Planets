@@ -7,29 +7,39 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
  * Created by Aleksander on 10/10/2015.
  */
 public class Launch {
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
         JFrame frame = new JFrame("Pre-launch settings");
         JPanel p = new JPanel(new GridLayout(3,1,10,10));
-        JLabel label = new JLabel("Launching " + Reference.GAME_TITLE + " please choose a resolution");
+        JLabel label = new JLabel("Launching " + Reference.GAME_TITLE + " Please choose a resolution!");
         JButton proceed = new JButton("Proceed");
         JComboBox<DisplayModeHelper> c = new JComboBox<>();
 
         GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice display = environment.getDefaultScreenDevice();
         ArrayList<java.awt.DisplayMode> modes = new ArrayList<>(Arrays.asList(display.getDisplayModes()));
-        modes.sort((d2, d1) -> Integer.compare(d1.getWidth() * d1.getHeight(), d2.getWidth() * d2.getHeight()));;
+        modes.sort((d2, d1) -> Integer.compare(d1.getWidth() * d1.getHeight(), d2.getWidth() * d2.getHeight()));
 
         modes.stream().forEachOrdered((d) -> {
             if (d.getBitDepth() == 32 && d.getRefreshRate() == 60)
                 c.addItem(new DisplayModeHelper(d, d.getWidth() + "x" + d.getHeight()));
         });
+
         proceed.addActionListener(e -> {
             java.awt.DisplayMode m = ((DisplayModeHelper) c.getSelectedItem()).mode;
             String[] s = {m.getWidth() + "", m.getHeight() + ""};
