@@ -99,34 +99,6 @@ public class Maindep {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    public int getDelta() {
-        long time = getTime();
-        int delta = (int) (time - lastFrame);
-        lastFrame = time;
-
-        return delta;
-    }
-
-    /**
-     * Calculate how many milliseconds have passed
-     * since last frame.
-     *
-     * @return milliseconds passed since last frame
-
-
-    public long getTime() {
-        return (Sys.getTime() * 1000) / Sys.getTimerResolution();
-    }
-
-    public void updateFPS() {
-        if (getTime() - lastFPS > 1000) {
-            Display.setTitle(Reference.GAME_TITLE + " FPS: " + fps);
-            fps = 0;
-            lastFPS += 1000;
-        }
-        fps++;
-    }
-
     public static void main(String[] args) {
         try{
             DisplayMode d = new DisplayMode(Integer.parseInt(args[0]), Integer.parseInt(args[1]));

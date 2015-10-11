@@ -24,19 +24,23 @@ public class Main {
     private long window;
 
 
+    private void setupGL(){
+
+    }
+
+    private void renderGL(){
+
+    }
+
+
     public void run(DisplayMode displayMode) {
         System.out.println("Hello LWJGL " + Sys.getVersion() + "!");
 
         try {
             init(displayMode);
 
-            // This line is critical for LWJGL's interoperation with GLFW's
-            // OpenGL context, or any context that is managed externally.
-            // LWJGL detects the context that is current in the current thread,
-            // creates the GLCapabilities instance and makes the OpenGL
-            // bindings available for use.
+            //Important
             GL.createCapabilities();
-
 
             // Set the clear color to black
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -110,14 +114,6 @@ public class Main {
 
         // Make the window visible
         glfwShowWindow(window);
-    }
-
-    private void setupGL(){
-
-    }
-
-    private void renderGL(){
-
     }
 
     public static void main(String[] args) {
