@@ -1,168 +1,132 @@
 package ak.planets;
 
-import ak.planets.entity.RenderableEntity;
-import ak.planets.util.*;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
+import ak.planets.util.Reference;
 import org.lwjgl.Sys;
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
-import org.lwjgl.opengl.DisplayMode;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.awt.*;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryUtil.*;
+
+/**
+ * Created by Aleksander on 11/10/2015.
+ */
 public class Main {
+    // We need to strongly reference callback instances.
 
-    /** position of quad */
-    float x = 400, y = 300;
-    /** angle of quad rotation */
-    float rotation = 0;
+    private GLFWKeyCallback   keyCallback;
 
-    /** time at last frame */
-    long lastFrame;
+    //window handle
+    private long window;
 
-    /** frames per second */
-    int fps;
-    /** last fps time */
-    long lastFPS;
-    RenderableEntity e;
 
-    public void start(DisplayMode d) {
-        try {
-
-            ByteBuffer[] list = new ByteBuffer[2];
-            list[0] = createTexture(ImageIO.read(new File("res/texture/icon/icon32.png")));
-            list[1] = createTexture(ImageIO.read(new File("res/texture/icon/icon64.png")));
-            System.out.println("taskbaricon result: " + Display.setIcon(list));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        PixelFormat pixelFormat = new PixelFormat();
-        ContextAttribs contextAttributes = new ContextAttribs(3, 2)
-                .withForwardCompatible(true)
-                .withProfileCore(true);
-        DisplayMode displayMode = new DisplayMode(d.getWidth(), d.getHeight());
+    public void run(DisplayMode displayMode) {
+        System.out.println("Hello LWJGL " + Sys.getVersion() + "!");
 
         try {
-            Display.setDisplayMode(displayMode);
-            Display.setTitle(Reference.GAME_TITLE);
-            Display.create(pixelFormat, contextAttributes);
-        } catch (LWJGLException e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
+            init(displayMode);
 
-        //Init
-        initGL();
-        getDelta();
-        setup();
-        lastFPS = getTime();
+            // This line is critical for LWJGL's interoperation with GLFW's
+            // OpenGL context, or any context that is managed externally.
+            // LWJGL detects the context that is current in the current thread,
+            // creates the GLCapabilities instance and makes the OpenGL
+            // bindings available for use.
+            GL.createCapabilities();
 
-        while (!Display.isCloseRequested()) {
-            int delta = getDelta();
 
-            update(delta);
-            renderGL();
+            // Set the clear color to black
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-            Display.update();
-            Display.sync(60); // cap fps to 60fps
-        }
+            setupGL();
+            // Run the rendering loop until the user has attempted to close
+            // the window or has pressed the ESCAPE key.
+            while ( glfwWindowShouldClose(window) == GL_FALSE ) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-        Display.destroy();
-    }
+                renderGL();
 
-    public void update(int delta) {
-        // rotate quad
-        rotation += 0.15f * delta;
+                glfwSwapBuffers(window);
 
-        if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) x -= 0.35f * delta;
-        if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) x += 0.35f * delta;
-
-        if (Keyboard.isKeyDown(Keyboard.KEY_UP)) y -= 0.35f * delta;
-        if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) y += 0.35f * delta;
-
-        //Update FPS
-        updateFPS();
-    }
-
-    public void initGL() {
-        GL11.glClearColor(0f, 0f, 0f, 0f);
-        GL11.glViewport(0, 0, Display.getWidth(), Display.getHeight());
-    }
-
-    public void setup(){
-        e = new RenderableEntity();
-        e.setup();
-    }
-
-    public void renderGL() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-        e.render();
-    }
-
-    public int getDelta() {
-        long time = getTime();
-        int delta = (int) (time - lastFrame);
-        lastFrame = time;
-
-        return delta;
-    }
-
-    /**
-     * Calculate how many milliseconds have passed
-     * since last frame.
-     *
-     * @return milliseconds passed since last frame
-     */
-
-    public long getTime() {
-        return (Sys.getTime() * 1000) / Sys.getTimerResolution();
-    }
-
-    public void updateFPS() {
-        if (getTime() - lastFPS > 1000) {
-            Display.setTitle("FPS: " + fps);
-            fps = 0;
-            lastFPS += 1000;
-        }
-        fps++;
-    }
-
-    public static ByteBuffer createTexture(BufferedImage image) {
-        int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
-
-        //4 for RGBA, 3 for RGB
-        ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4);
-
-        for(int y = 0; y < image.getHeight(); y++){
-            for(int x = 0; x < image.getWidth(); x++){
-                int pixel = pixels[y * image.getWidth() + x];
-                buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
-                buffer.put((byte) ((pixel >> 8) & 0xFF));      // Green component
-                buffer.put((byte) (pixel & 0xFF));             // Blue component
-                buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component. Only for RGBA
+                glfwPollEvents();
             }
-        }
-        buffer.flip();
 
-        return buffer;
+            // Release window and window callbacks
+            glfwDestroyWindow(window);
+            keyCallback.release();
+
+        } finally {
+            // Terminate GLFW
+            glfwTerminate();
+        }
+    }
+
+    private void init(DisplayMode m) {
+
+        // Initialize GLFW. Most GLFW functions will not work before doing this.
+        if ( glfwInit() != GL11.GL_TRUE )
+            throw new IllegalStateException("Unable to initialize GLFW");
+
+        //window config, visible and resizable
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+        int WIDTH = m.getWidth();
+        int HEIGHT = m.getHeight();
+
+        // Create the window
+        window = glfwCreateWindow(WIDTH, HEIGHT, Reference.GAME_TITLE, NULL, NULL);
+        if ( window == NULL )
+            throw new RuntimeException("Failed to create the GLFW window");
+
+        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
+        glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
+            @Override
+            public void invoke(long window, int key, int scancode, int action, int mods) {
+                if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
+                    glfwSetWindowShouldClose(window, GL_TRUE); // We will detect this in our rendering loop
+            }
+        });
+
+        //get resolution of the primary monitor
+        ByteBuffer vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+        //center the window
+        glfwSetWindowPos(
+                window,
+                (GLFWvidmode.width(vidmode) - WIDTH) / 2,
+                (GLFWvidmode.height(vidmode) - HEIGHT) / 2
+        );
+
+        // Make the OpenGL context current
+        glfwMakeContextCurrent(window);
+
+        // Enable v-sync
+        glfwSwapInterval(1);
+
+        // Make the window visible
+        glfwShowWindow(window);
+    }
+
+    private void setupGL(){
+
+    }
+
+    private void renderGL(){
+
     }
 
     public static void main(String[] args) {
         try{
-            DisplayMode d = new DisplayMode(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-            new Main().start(d);
+            DisplayMode d = new DisplayMode(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+            new Main().run(d);
         }catch (NumberFormatException e){
 
-            System.out.println("Are you sure " + args[0] + " and " + args[1] + " are not integers");
+            System.out.println("Are you sure " + args[0] + " and " + args[1] + " are integers");
         }catch (Exception e){
             e.printStackTrace();
         }

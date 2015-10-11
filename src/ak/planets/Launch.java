@@ -42,7 +42,7 @@ public class Launch {
 
         proceed.addActionListener(e -> {
             java.awt.DisplayMode m = ((DisplayModeHelper) c.getSelectedItem()).mode;
-            String[] s = {m.getWidth() + "", m.getHeight() + ""};
+            String[] s = {m.getWidth() + "", m.getHeight() + "", m.getRefreshRate() + "", m.getBitDepth() + ""};
             frame.dispose();
             Main.main(s);
         });
