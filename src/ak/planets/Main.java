@@ -1,5 +1,6 @@
 package ak.planets;
 
+import ak.planets.entity.PlayerEntity;
 import ak.planets.util.Reference;
 import org.lwjgl.Sys;
 import org.lwjgl.glfw.*;
@@ -19,26 +20,36 @@ public class Main {
     // We need to strongly reference callback instances.
 
     private GLFWKeyCallback   keyCallback;
-
+    private PlayerEntity playerEntity;
+    private PlayerEntity playerEntity2;
     //window handle
     private long window;
 
-
+    private void initObjects(){
+        playerEntity = new PlayerEntity(0, 0);
+        playerEntity2 = new PlayerEntity(0.2f, 0);
+    }
     private void setupGL(){
-
+        playerEntity.setup();
+        playerEntity2.setup();
     }
 
     private void renderGL(){
-
+        playerEntity2.draw();
+        playerEntity.draw();
     }
 
+    private void update(){
+        playerEntity.update();
+        playerEntity2.update();
+    }
 
     public void run(DisplayMode displayMode) {
         System.out.println("Hello LWJGL " + Sys.getVersion() + "!");
 
         try {
             init(displayMode);
-
+            initObjects();
             //Important
             GL.createCapabilities();
 
@@ -51,8 +62,8 @@ public class Main {
             while ( glfwWindowShouldClose(window) == GL_FALSE ) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
+                update();
                 renderGL();
-
                 glfwSwapBuffers(window);
 
                 glfwPollEvents();
@@ -93,6 +104,27 @@ public class Main {
             public void invoke(long window, int key, int scancode, int action, int mods) {
                 if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
                     glfwSetWindowShouldClose(window, GL_TRUE); // We will detect this in our rendering loop
+                if ( key == GLFW_KEY_RIGHT  && action == GLFW_PRESS)
+                    playerEntity.updateMovement(PlayerEntity.RIGHT, true);
+                if ( key == GLFW_KEY_RIGHT  && action == GLFW_RELEASE)
+                    playerEntity.updateMovement(PlayerEntity.RIGHT, false);
+
+                if ( key == GLFW_KEY_LEFT   && action == GLFW_PRESS)
+                    playerEntity.updateMovement(PlayerEntity.LEFT, true);
+                if ( key == GLFW_KEY_LEFT   && action == GLFW_RELEASE)
+                    playerEntity.updateMovement(PlayerEntity.LEFT, false);
+
+                if ( key == GLFW_KEY_UP     && action == GLFW_PRESS)
+                    playerEntity2.updateMovement(PlayerEntity.UP, true);
+                if ( key == GLFW_KEY_UP     && action == GLFW_RELEASE)
+                    playerEntity2.updateMovement(PlayerEntity.UP, false);
+
+                if ( key == GLFW_KEY_DOWN   && action == GLFW_PRESS)
+                    playerEntity2.updateMovement(PlayerEntity.DOWN, true);
+                if ( key == GLFW_KEY_DOWN   && action == GLFW_RELEASE)
+                    playerEntity2.updateMovement(PlayerEntity.DOWN, false);
+
+
             }
         });
 
