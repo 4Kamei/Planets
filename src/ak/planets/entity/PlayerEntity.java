@@ -1,5 +1,6 @@
 package ak.planets.entity;
 
+import ak.planets.util.ShaderUtil;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -19,6 +20,10 @@ public class PlayerEntity {
     private int vaoId;
     private int vboId;
     private int vertexCount;
+
+    //Shader
+    private int fragmentShader;
+    private int vertexShader;
 
     public static final int UP = 2;
     public static final int DOWN = 3;
@@ -56,6 +61,10 @@ public class PlayerEntity {
 
 
     public void setup(){
+
+        fragmentShader = ShaderUtil.loadShader("/src/ak/planets/shader/PlayerEntity.vs.glsl", GL20.GL_FRAGMENT_SHADER);
+        vertexShader = ShaderUtil.loadShader("/src/ak/planets/shader/PlayerEntity.fs.glsl", GL20.GL_VERTEX_SHADER);
+
 
         /**
          * Vertices for the triangle, more than one triangle may be needed for complex models
@@ -122,7 +131,7 @@ public class PlayerEntity {
         GL11.glTranslatef(positionVector.x, positionVector.y, 0);
 
         GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, vertexCount);
-       GL11.glTranslatef(-positionVector.x, -positionVector.y, 0);
+        GL11.glTranslatef(-positionVector.x, -positionVector.y, 0);
         GL20.glDisableVertexAttribArray(0);
         GL30.glBindVertexArray(0);
     }
